@@ -1,15 +1,15 @@
 %
 % ***************** THE SPBMARK PACKAGE *****************
 %
-% Copyright (C) 2021-2022 by Qu Yi <q1jx@foxmail.com>
+% Copyright (C) 2021-2024 by Qu Yi <toquyi@163.com>
 %
 % This work may be distributed and/or modified under the
 % conditions of the CC-BY 4.0 License.
 % The latest version of this license is in
 %   https://creativecommons.org/licenses/by/4.0/legalcode
 \NeedsTeXFormat{LaTeX2e}[2018/12/31]
-\RequirePackage{xparse,l3keys2e}
-\ProvidesExplPackage{spbmark}{2022/03/05}{1.4}
+\RequirePackage{xparse}
+\ProvidesExplPackage{spbmark}{2024/07/14}{1.46n}
   {Customize superscripts and subscripts}
 
 \cs_generate_variant:Nn \box_set_ht:Nn { cv }
@@ -18,36 +18,123 @@
 \cs_generate_variant:Nn \dim_gset:Nn { Nv }
 \cs_generate_variant:Nn \dim_abs:n { V,v }
 \cs_generate_variant:Nn \dim_compare:nNnTF { V,v }
-\cs_generate_variant:Nn \msg_warning:nnn { nnV }
 \cs_generate_variant:Nn \str_case:nn { x }
 \cs_generate_variant:Nn \tl_if_novalue:nF { V }
 \cs_generate_variant:Nn \tl_if_blank:nF { v }
 
-\cs_new_protected:Npn \spb_define:n { \keys_define:nn { ctex/style } }
-\cs_new_protected:Npn \spb_set:n { \keys_set:nn { ctex/style } }
-\cs_set_eq:NN \spbset \spb_set:n
-\keys_define:nn { spbmark/option }
-  {
-    text .bool_set:N        = \l_spb_newsupb_text_bool,
-    text .default:n         = true,
-    math .bool_set:N        = \l_spb_newsupb_math_bool,
-    math .default:n         = true,
-    foot .bool_set:N        = \l_spb_newsupb_foot_bool,
-    foot .default:n         = true,
-    both .meta:n            = { text,math },
-    both .value_forbidden:n = true,
-    all .meta:n             = { text,math,foot },
-    all .value_forbidden:n  = true,
-    ctex .code:n            = { },
-    newsupb .code:n         = { }
-  }
-
-\ProcessKeysOptions{spbmark/option}
-
+\providecommand{\AfterPreamble}{\AtBeginDocument}
+\AtBeginDocument{\cs_set_eq:NN \AfterPreamble \use:n}
 \cs_set_eq:NN \spb@textsuperscript@save \textsuperscript
 \cs_set_eq:NN \spb@textsubscript@save \textsubscript
 \cs_set_eq:NN \spb@math@super@save \sp
 \cs_set_eq:NN \spb@math@sub@save \sb
+\cs_set_eq:NN \spb@@makefnmark@save \@makefnmark
+\cs_new_protected:Npn \spb_define:n { \keys_define:nn { ctex/tools } }
+\cs_new_protected:Npn \spb_set:n { \keys_set:nn { ctex/tools } }
+\cs_set_eq:NN \spbset \spb_set:n
+\cs_new_protected:Npn \spb_mark_core_set_trad:n #1
+  {
+    \cs_set_eq:cc { spb@text#1script@core } { spb@text#1script@save }
+    \cs_set_eq:cc { spb@math@#1@core } { spb@math@#1@save }
+  }
+\cs_new_protected:Npn \spb_mark_core_set_none:n #1
+  {
+    \cs_set_eq:cN { spb@text#1script@core } \use:n
+    \cs_set_eq:cN { spb@math@#1@core } \use:n
+  }
+
+\keys_define:nn { spbmark/option }
+  {
+    text .choice:,
+    text/true .code:n   =
+      {
+        \cs_set:Npn \textsuperscript { \super[textsp] }
+        \cs_set:Npn \textsubscript { \sub[textsb] }
+      },
+    text/false .code:n  =
+      {
+        \cs_set:Npn \textsuperscript { \spb@textsuperscript@core }
+        \cs_set:Npn \textsubscript { \spb@textsubscript@core }
+      },
+    text .default:n     = true,
+    math .choice:,
+    math/true .code:n   =
+      {
+        \cs_set:Npn \sp { \super[mathsp] }
+        \cs_set:Npn \sb { \sub[mathsb] }
+      },
+    math/false .code:n  =
+      {
+        \cs_set:Npn \sp { \spb@math@super@core }
+        \cs_set:Npn \sb { \spb@math@sub@core }
+      },
+    math .default:n     = true,
+    foot .choice:,
+    foot/true .code:n   =
+      {
+        \cs_set:Npn \@makefnmark
+          { \hbox:n { \fnmarkfont{\super[fnmark]{\@thefnmark}} } }
+      },
+    foot/false .code:n  =
+      { \cs_set:Npn \@makefnmark { \spb@@makefnmark@save } },
+    foot .default:n     = true,
+    both .meta:n        = { text = #1,math = #1 },
+    both .default:n     = true,
+    all .meta:n         = { text = #1,math = #1,foot = #1 },
+    all .default:n      = true,
+    spcore .choice:,
+    spcore .value_required:n = true,
+    spcore/trad .code:n = \spb_mark_core_set_trad:n { super },
+    spcore/none .code:n = \spb_mark_core_set_none:n { super },
+    spcore .initial:n   = trad,
+    sbcore .choice:,
+    sbcore .value_required:n = true,
+    sbcore/trad .code:n = \spb_mark_core_set_trad:n { sub },
+    sbcore/none .code:n = \spb_mark_core_set_none:n { sub },
+    sbcore .initial:n   = trad
+  }
+\char_set_catcode_active:N \~
+\keys_define:nn { spbmark/option }
+  {
+    math* .choice:,
+    math*/true .code:n  =
+      {
+        \AfterPreamble
+          {
+            \group_begin:
+            \char_set_lccode:nn { `\~ } { `\^ }
+            \lowercase{\group_end:\cs_set:Npn ~} { \super[mathsp*] }
+            \group_begin:
+            \char_set_lccode:nn { `\~ } { `\_ }
+            \lowercase{\group_end:\cs_set:Npn ~} { \sub[mathsb*] }
+            \char_set_mathcode:nn { `\^ } { "8000 }
+            \char_set_catcode_other:N \^
+            \char_set_catcode_other:N \_
+          }
+      },
+    math*/false .code:n =
+      {
+        \AfterPreamble
+          {
+            \char_set_catcode_math_superscript:N \^
+            \char_set_catcode_math_subscript:N \_
+            \char_set_mathcode:nn { `\^ } { "005E }
+          }
+      },
+    math* .default:n    = true
+  }
+\char_set_catcode_space:N \~
+\tl_if_exist:NTF \ftntm@font
+  { \tl_set_eq:NN \fnmarkfont \ftntm@font }
+  { \tl_set_eq:NN \fnmarkfont \normalfont }
+
+\cs_if_exist:NTF \ProcessKeyOptions
+  { \ProcessKeyOptions[spbmark/option] }
+  {
+    \RequirePackage{l3keys2e}
+    \ProcessKeysOptions{spbmark/option}
+  }
+
 \tl_new:N \g__spb_mark_case_init_tl
 \cs_new_protected:Npn \spb_local_case_init:nnn #1#2#3
   {
@@ -83,6 +170,12 @@
   }
 \cs_new_protected:Npn \spbshortkv #1#2
   { \spb_define:n { #1 .meta:n = {#2} } }
+\clist_map_inline:nn
+  { textsp,textsb,mathsp,mathsb,mathsp*,mathsb*,fnmark }
+  {
+    \defspbstyle{#1}{}
+    \spbshortkv{#1}{style = #1}
+  }
 \spb_define:n
   {
     mode .tl_set:N      = \l__spb_mode_value_tl,
@@ -120,14 +213,15 @@
     nohmove .meta:n     = { sphmove = 0pt,sbhmove = 0pt },
     novmove .meta:n     = { spvmove = 0pt,sbvmove = 0pt }
   }
+
 \cs_new:Npn \spb_box_super_move_up_i:n #1
-  { \box_move_up:nn {#1} { \box_use:N \l__super_i_inner_box } }
+  { \box_move_up:nn {#1} { \box_use:N \g__super_i_inner_box } }
 \cs_new:Npn \spb_box_sub_move_down_i:n #1
-  { \box_move_down:nn {#1} { \box_use:N \l__sub_i_inner_box } }
+  { \box_move_down:nn {#1} { \box_use:N \g__sub_i_inner_box } }
 \cs_new:Npn \spb_box_super_move_up_ii:n #1
-  { \box_move_up:nn {#1} { \box_use:N \l__super_ii_box } }
+  { \box_move_up:nn {#1} { \box_use:N \g__super_ii_box } }
 \cs_new:Npn \spb_box_sub_move_down_ii:n #1
-  { \box_move_down:nn {#1} { \box_use:N \l__sub_ii_box } }
+  { \box_move_down:nn {#1} { \box_use:N \g__sub_ii_box } }
 \cs_new:Npn \spb_box_vmove_i:nn #1
   {
     \str_case:nn {#1}
@@ -220,32 +314,32 @@
 \cs_new_protected:Npn \spb_ht_dp_assign:nnnn #1#2#3#4
   {
     \tl_if_blank:vF { l__#1_height_#3_tl }
-      { \box_set_ht:cv { l__#1_#3#4_box } { l__#1_height_#3_tl } }
+      { \box_set_ht:cv { g__#1_#3#4_box } { l__#1_height_#3_tl } }
     \tl_if_blank:vF { l__#1_depth_i_tl }
-      { \box_set_dp:cv { l__#2_#3#4_box } { l__#2_depth_#3_tl } }
+      { \box_set_dp:cv { g__#2_#3#4_box } { l__#2_depth_#3_tl } }
   }
 
-\box_new:N \l__super_i_outer_box
-\box_new:N \l__super_i_inner_box
-\box_new:N \l__sub_i_outer_box
-\box_new:N \l__sub_i_inner_box
-\box_new:N \l__super_ii_box
-\box_new:N \l__sub_ii_box
+\box_new:N \g__super_i_outer_box
+\box_new:N \g__super_i_inner_box
+\box_new:N \g__sub_i_outer_box
+\box_new:N \g__sub_i_inner_box
+\box_new:N \g__super_ii_box
+\box_new:N \g__sub_ii_box
 \dim_new:N \llastwd
 \dim_new:N \clastwd
 \dim_new:N \rlastwd
-\tl_set:Nn \superwd { \box_wd:N \l__super_ii_box }
-\tl_set:Nn \subwd { \box_wd:N \l__sub_ii_box }
+\tl_set:Nn \superwd { \box_wd:N \g__super_ii_box }
+\tl_set:Nn \subwd { \box_wd:N \g__sub_ii_box }
 \tl_set:Nn \maxwd { \dim_max:VV \superwd \subwd }
-\tl_set:Nn \l__spb_box_super_wd_i_tl { \box_wd:N \l__super_i_inner_box }
-\tl_set:Nn \l__spb_box_sub_wd_i_tl { \box_wd:N \l__sub_i_inner_box }
+\tl_set:Nn \l__spb_box_super_wd_i_tl { \box_wd:N \g__super_i_inner_box }
+\tl_set:Nn \l__spb_box_sub_wd_i_tl { \box_wd:N \g__sub_i_inner_box }
 \cs_new:Npn \spb_math_print_store_i:nn #1#2
   {
-    \hbox_gset:cn { l__#1_i_inner_box }
+    \hbox_gset:cn { g__#1_i_inner_box }
       {
         \ensuremath
           {
-            \use:c { spb@math@#1@save }
+            \use:c { spb@math@#1@core }
               { \tl_use:c { l__spb_#1_cmd_i_tl }{#2} }
           }
       }
@@ -253,26 +347,26 @@
   }
 \cs_new:Npn \spb_text_print_store_i:nn #1#2
   {
-    \hbox_gset:cn { l__#1_i_inner_box }
+    \hbox_gset:cn { g__#1_i_inner_box }
       {
-        \use:c { spb@text#1script@save }
+        \use:c { spb@text#1script@core }
           { \tl_use:c { l__spb_#1_cmd_i_tl }{#2} }
       }
     \dim_gset:Nv \rlastwd { l__spb_box_#1_wd_i_tl }
   }
 \cs_new:Npn \spb_math_print_store_ii:nn #1#2
   {
-    \hbox_gset:Nn \l__super_ii_box
-      { \ensuremath{\spb@math@super@save{\l__spb_super_cmd_ii_tl{#1}}} }
-    \hbox_gset:Nn \l__sub_ii_box
-      { \ensuremath{\spb@math@sub@save{\l__spb_sub_cmd_ii_tl{#2}}} }
+    \hbox_gset:Nn \g__super_ii_box
+      { \ensuremath{\spb@math@super@core{\l__spb_super_cmd_ii_tl{#1}}} }
+    \hbox_gset:Nn \g__sub_ii_box
+      { \ensuremath{\spb@math@sub@core{\l__spb_sub_cmd_ii_tl{#2}}} }
   }
 \cs_new:Npn \spb_text_print_store_ii:nn #1#2
   {
-    \hbox_gset:Nn \l__super_ii_box
-      { \spb@textsuperscript@save{\l__spb_super_cmd_ii_tl{#1}} }
-    \hbox_gset:Nn \l__sub_ii_box
-      { \spb@textsubscript@save{\l__spb_sub_cmd_ii_tl{#2}} }
+    \hbox_gset:Nn \g__super_ii_box
+      { \spb@textsuperscript@core{\l__spb_super_cmd_ii_tl{#1}} }
+    \hbox_gset:Nn \g__sub_ii_box
+      { \spb@textsubscript@core{\l__spb_sub_cmd_ii_tl{#2}} }
   }
 \cs_set_eq:NN \spbifmath \use_ii:nn
 \cs_new:Npn \spb@ifmathtrue { \cs_set_eq:NN \spbifmath \use_i:nn }
@@ -305,28 +399,88 @@
         }
       }
     }
+\spb_define:n
+  {
+    thiswd .code:n      =
+      {
+        \spb_local_case_init:nnn
+          { \tl_set:Nn \l__spb_super_thiswd_mode_tl {#1} }
+          { \tl_set:Nn \l__spb_sub_thiswd_mode_tl {#1} } { }
+      },
+    regex .code:n       =
+      {
+        \spb_local_case_init:nnn
+          { \tl_set:Nn \l__spb_super_regex_next_tl {#1} }
+          { \tl_set:Nn \l__spb_sub_regex_next_tl {#1} } { }
+      },
+    spthiswd .tl_set:N  = \l__spb_super_thiswd_mode_tl,
+    spthiswd .initial:n = keep,
+    sbthiswd .tl_set:N  = \l__spb_sub_thiswd_mode_tl,
+    sbthiswd .initial:n = keep,
+    spregex .tl_set:N   = \l__spb_super_regex_next_tl,
+    spregex .initial:n  = \c{sub}|\c{textsubscript}|\c{sb}|\_,
+    sbregex .tl_set:N   = \l__spb_sub_regex_next_tl,
+    sbregex .initial:n  = \c{super}|\c{textsuperscript}|\c{sp}|\^
+  }
+\cs_new:Npn \spb_clear_thiswd:n #1
+  {
+    \str_case:nn {#1}
+      {
+        { super }
+        {
+          \peek_regex:nF
+            { \exp_not:o { \l__spb_super_regex_next_tl } }
+            {
+              \exp_not:n
+                {
+                  \dim_zero:N \llastwd
+                  \dim_zero:N \clastwd
+                  \dim_zero:N \rlastwd
+                }
+            }
+        }
+        { sub }
+        {
+          \peek_regex:nF
+            { \exp_not:o { \l__spb_sub_regex_next_tl } }
+            {
+              \exp_not:n
+                {
+                  \dim_zero:N \llastwd
+                  \dim_zero:N \clastwd
+                  \dim_zero:N \rlastwd
+                }
+            }
+        }
+      }
+  }
 
 \cs_new_protected:Npn \spb_both_newcmd_map:n #1
   {
-    \exp_args:Nc \NewDocumentCommand {#1}{sO{}mO{}}
+    \exp_args:Nc \NewDocumentCommand {#1}{sO{}O{}mO{}}
       {
         \group_begin:
         \mode_leave_vertical:
         \tl_gset:Nn \g__spb_mark_case_init_tl {#1}
-        \spb_define:n { unknown .undefine: }
-        \spb_set:n { ##2,##4 }
-        \spb_mode_switch:nnn {#1} {##3} { i }
+        \spb_set:n { ##2,##3,##5 }
+        \spb_mode_switch:nnn {#1} {##4} { i }
         \spb_content_hbox_set:nn {#1} {##1}
         \spb_ht_dp_assign:nnnn {#1} {#1} { i } { _outer }
-        \box_use:c { l__#1_i_outer_box }
+        \box_use:c { g__#1_i_outer_box }
+        \exp_last_unbraced:Nx
         \group_end:
+          {
+            \exp_args:Nv \str_if_eq:nnT
+              { l__spb_#1_thiswd_mode_tl } { auto }
+              { \spb_clear_thiswd:n {#1} }
+          }
       }
   }
 \cs_new_protected:Npn \spb_content_hbox_set:nn #1#2
   {
     \dim_gset:Nn \clastwd { (\llastwd + \rlastwd)/2 }
     \tl_set:Nn \abs@hmove@i { \dim_abs:v { l__spb_#1_hmove_tl } }
-    \hbox_set:cn { l__#1_i_outer_box }
+    \hbox_gset:cn { g__#1_i_outer_box }
       {
         \dim_compare:vNnTF { l__spb_#1_hmove_tl } < { 0pt }
           {
@@ -368,7 +522,6 @@
     \group_begin:
     \mode_leave_vertical:
     \tl_gset:Nn \g__spb_mark_case_init_tl { supersub }
-    \spb_define:n { unknown .undefine: }
     \spb_set:n {#2,#5}
     \spb_mode_switch:nnn {#3} {#4} { ii }
     \spb_ht_dp_assign:nnnn { super } { sub } { ii } { }
@@ -445,26 +598,22 @@
     Alignment~only~supports~l,~c,~and~r. \\
     The~l~parameter~will~be~used~by~default.
   }
-
-\bool_if:NT \l_spb_newsupb_text_bool
+\providecommand{\IfPackageLoadedTF}{\@ifpackageloaded}
+\providecommand{\IfFormatAtLeastTF}{\@ifl@t@r\fmtversion}
+\IfPackageLoadedTF{easybase}
+  {\AddToHook{package/easybase/after}}
+  {\use:n}
+  { \keys_define:nn { } { ctex/tools .inherit:n = spbmark/option } }
+\IfFormatAtLeastTF{2021/11/15}
   {
-    \cs_set_eq:NN \textsuperscript \super
-    \cs_set_eq:NN \textsubscript \sub
-  }
-\bool_if:NT \l_spb_newsupb_math_bool
-  {
-    \cs_set_eq:NN \sp \super
-    \cs_set_eq:NN \sb \sub
-  }
-\bool_if:NT \l_spb_newsupb_foot_bool
-  {
-    \cs_set:Npn \@makefnmark
-      { \hbox:n { \fnmarkfont{\super{\@thefnmark}} } }
-  }
+    \AddToHook{package/altsubsup/after}
+      {
+        \ifaltsbsp@spbmark
+          \SetAltSubSupCommands{\relax}
+        \fi
+      }
+  }{}
 \cs_set_eq:NN \spb \supersub
-\tl_if_exist:NTF \ftntm@font
-  { \tl_set_eq:NN \fnmarkfont \ftntm@font }
-  { \tl_set_eq:NN \fnmarkfont \normalfont }
 \endinput
 %
 % End of file `spbmark.sty'.
