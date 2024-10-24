@@ -1,15 +1,17 @@
+\PassOptionsToPackage{svgnames}{xcolor}
 \documentclass[load-preamble+]{cnltx-doc}
 
-\usepackage{siunitx,setspace,hologo,changelog,enumitem}
+\usepackage{siunitx,hologo,changelog,enumitem,codehigh}
 \usepackage[spbmark]{altsubsup}
 \usepackage[margin = 1in,marginparwidth = 0.6in,footskip = 0.5in]{geometry}
 \usepackage[noto]{newtxmath}
 \setcnltx
   {
     package           = spbmark,
-    version           = v1.46n,
-    date              = 2024/07/14,
+    version           = v1.46q,
+    date              = 2024/10/22,
     authors           = Qu Yi,
+    title             = \spbmark{} package,
     info              = Customize superscripts and subscripts,
     email             = toquyi@163.com,
     url               = https://github.com/texno3/spbmark,
@@ -18,10 +20,7 @@
         \pkg*{spbmark} provides three commands \cs{super}, \cs{sub} and \cs{supersub} to improve the layout of superscripts and subscripts which can be adjusted the relative position and format, and can be used in text and math mode.
       },
     color-scheme      = blue,
-    listings-options  = {numbers = none,gobble = 2,lineskip = 1pt},
-    pre-output        = {\parindent = 0em\setstretch{1.3}},
-    before-skip       = \smallskipamount,
-    after-skip        = \smallskipamount
+    title-format      = \LARGE
   }
 \makeatletter
 \newcommand{\splitmeta}[2]{\meta{#1}\texttt{,}\meta{#2}}
@@ -41,9 +40,12 @@
 \newnote{\newtag}[1]{\textcolor{red}{#1}}
 \renewcommand{\emph}[1]{\textcolor{red}{#1}}
 \renewcommand{\cnltx@write@lastname}{}
+\renewcommand{\cnltxpackagenameformat}[1]{\textcolor{cnltx}{\textsf{#1}}}
 \setlist{nosep,topsep = \smallskipamount}
 \setlist[description,1]{leftmargin = \parindent}
 \setlist[itemize,1]{leftmargin = *}
+\SetCodeHighStyle[default]{2}{cs}
+\colorlet{link}{DeepPink}
 \makeatother
 
 \begin{document}
@@ -58,27 +60,27 @@ The following macro package options will redefine the script commands of the \La
   The \code{\^{}} and \code{\_{}} tokens in the math mode are equivalent to the \cs{super} and \cs{sub} commands. The command \cs{defspbstyle} can be used to define the style \code{mathsp*} and \code{mathsb*} to change the format of the math superscripts and subscripts.
   \keychoice{foot}{true,\fbox{false}}
   The format of the footnote mark match the superscripts global move and format settings. \cs{defspbstyle} can be used to define the superscripts style \code{fnmark} to change the format of the footnote mark.
-  \begin{example}[code-only]
-  \defspbstyle{textsp}{vmove=-1pt,cmd=\bfseries}
-  \defspbstyle{mathsb}{hmove=0.5em}
-  \defspbstyle{fnmark}{cmd=\small\color{red}}
-  \end{example}
+\begin{codehigh}
+\defspbstyle{textsp}{vmove=-1pt,cmd=\bfseries}
+\defspbstyle{mathsb}{hmove=0.5em}
+\defspbstyle{fnmark}{cmd=\small\color{red}}
+\end{codehigh}
   \keychoice{both}{true,\fbox{false}}
   The values of \option{text} and \option{math} two options are \code{true} or \code{false} at the same time.
   \keychoice{all}{true,\fbox{false}}
   The values of \option{text}, \option{math} and \option{foot} three options are \code{true} or \code{false} at the same time.
-  \begin{example}[code-only]
-  \usepackage[both]{spbmark}
-  \usepackage[text,foot=true]{spbmark}
-  \spbset{all=false,math}
-  \end{example}
+\begin{codehigh}
+\usepackage[both]{spbmark}
+\usepackage[text,foot=true]{spbmark}
+\spbset{all=false,math}
+\end{codehigh}
   \keychoice{spcore}{\fbox{trad},none}\newtag{New\\v1.46k}%
   Kernel command case for text and math modes superscripts. If \code{none} is selected, support for the superscripts kernel command is removed, and the \option{cmd} and \option{vmove} options need to be set to control the size and offset of the superscripts.
-  \begin{example}[code-only]
-  \usepackage[spcore=none]{spbmark}
-  \usepackage{graphicx}
-  \spbset{spcmd=\scalebox{0.6},spvmove=5pt}
-  \end{example}
+\begin{codehigh}
+\usepackage[spcore=none]{spbmark}
+\usepackage{graphicx}
+\spbset{spcmd=\scalebox{0.6},spvmove=5pt}
+\end{codehigh}
   \keychoice{sbcore}{\fbox{trad},none}\newtag{New\\v1.46k}%
   Option for subscripts kernel command case, similar to the \option{spcore} option.
 \end{options}
@@ -101,13 +103,13 @@ There are currently three commands to print superscripts and subscripts. Their f
   Save the width of the previous marker and provide center alignment. 
   \command{rlastwd}
   Save the width of the previous marker and provide right alignment. Actually this is the width of the next marker.
-  \begin{example}
-  1A\super{bcd}\sub{e}B \\
-  2A\super{bcd}\sub[hmove=-\llastwd]{e}B \\
-  3A\sub{e}\super{bcd}[hmove=-\llastwd]B \\
-  4A\super{bcd}\sub[hmove=-\clastwd]{e}B \\
-  5A\super{bcd}\sub[hmove=-\rlastwd]{e}B
-  \end{example}
+\begin{demohigh}
+1A\super{bcd}\sub{e}B \\
+2A\super{bcd}\sub[hmove=-\llastwd]{e}B \\
+3A\sub{e}\super{bcd}[hmove=-\llastwd]B \\
+4A\super{bcd}\sub[hmove=-\clastwd]{e}B \\
+5A\super{bcd}\sub[hmove=-\rlastwd]{e}B
+\end{demohigh}
   \command{supersub}[\sarg\oarg{kv list}\marg{super cont}\marg{sub cont}\oarg{kv list}]
   This is a command that outputs both superscript and subscript at the same time. You can also use the shorter command \cs{spb} instead of it. The two \meta{kv list} are equivalent.
   \command{superwd}
@@ -118,42 +120,42 @@ There are currently three commands to print superscripts and subscripts. Their f
   Save the maximum width of superscript and subscript in the previous super-subscript command. That is, it is the larger of the \cs{superwd} and \cs{subwd} commands.
 
   If horizontally move is negative and its absolute value is \emph{less} than the maximum width of the marker, then the marker overlaps the subsequent text. To avoid this use the command with the \emph{asterisk} parameter or adjust the horizontal distance with the marker length commands.
-  \begin{example}
-  \spbset{spvmove=5pt,vsep=1.8ex,spcmd=\color{blue}}
-  1A\super[hmove=-8pt]{super}B \\
-  2A\supersub[hmove=-8pt]{examsuper}{sub}B \\
-  3A\super*[hmove=-8pt]{super}B \\
-  4A\supersub*[hmove=-8pt]{examsuper}{sub}B \\
-  5A\super[hmove=-8pt]{super}\hspace{\dimexpr(\llastwd-8pt)}B \\
-  6A\supersub[hmove=-8pt]{examsuper}{sub}\hspace{\dimexpr(\maxwd-8pt)}B
-  \end{example}
+\begin{demohigh}
+\spbset{spvmove=5pt,vsep=1.8ex,spcmd=\color{blue}}
+1A\super[hmove=-8pt]{super}B \\
+2A\supersub[hmove=-8pt]{examsuper}{sub}B \\
+3A\super*[hmove=-8pt]{super}B \\
+4A\supersub*[hmove=-8pt]{examsuper}{sub}B \\
+5A\super[hmove=-8pt]{super}\hspace{\dimexpr(\llastwd-8pt)}B \\
+6A\supersub[hmove=-8pt]{examsuper}{sub}\hspace{\dimexpr(\maxwd-8pt)}B
+\end{demohigh}
   \command{defspbstyle}[\marg{style name}\marg{kv list}]
   Defines the style of the superscripts or subscripts used for the \option{style} option.
   \command{spbifmath}[\marg{math code}\marg{text code}]
   In some cases, \code{math} or \code{text} output modes require different code for format or move. This command can be used when using the \code{match} option or changing the output mode locally, whitch should be used in the move or format options. It can switch the corresponding code according to different output modes.
   \command{spbshortkv}[\marg{short opt}\marg{key value}]
   Converts any existing key-value pair to a shorthand option. The value of key \code{\#1} indicates that the shorthand option needs to be assigned a value.
-  \begin{example}
-  \spbshortkv{x}{sphmove=#1}
-  \defspbstyle{fancy}{sbcmd=\color{blue},mode=math}
-  \spbshortkv{mysb}{style=fancy}
-  1A\super[x=2pt]{b} \\
-  2A\sub{b}[mysb]
-  \end{example}
+\begin{demohigh}
+\spbshortkv{x}{sphmove=#1}
+\defspbstyle{fancy}{sbcmd=\color{blue},mode=math}
+\spbshortkv{mysb}{style=fancy}
+1A\super[x=2pt]{b} \\
+2A\sub{b}[mysb]
+\end{demohigh}
 \end{commands}
 
 The options common to \meta{kv list} of the three commands are as follows. They can also be used in \meta {key-value list} of the \cs{spbset} command. In this situation, in addition to \option{style} and \option{mode}, they will be set according to the type of the previous most recent command.
 \begin{options}
   \keyval{vmove}{fixed length}\Default{0pt}
-  Vertical move of superscript or subscript. Represents the extra vertical distance \option{vsep} between superscript and subscript in super-subscript command. The vertical movement starts at the marker horizontal baseline position.
+  Vertical move of superscripts or subscripts. Represents the extra vertical distance \option{vsep} between superscript and subscript in super-subscript command. The vertical movement starts at the marker horizontal baseline position.
   \keyval{hmove}{fixed length}\Default{0pt}
-  Horizontal move of superscript or subscript. Represents the \emph{common} move of superscript and subscript in super-subscript command. The starting point for horizontal movement is to the left of the marker. Moved values can be expressed mathematically:
-  \begin{example}
-  1A\super{b}[vmove=0.4ex+4pt/2,hmove=2pt*3-11.5pt] \\
-  2A\supersub[vsep={3pt,6pt-2bp}]{examsuper}{sub}
-  \end{example}
+  Horizontal move of superscripts or subscripts. Represents the \emph{common} move of superscript and subscript in super-subscript command. The starting point for horizontal movement is to the left of the marker. Moved values can be expressed mathematically:
+\begin{demohigh}
+1A\super{b}[vmove=0.4ex+4pt/2,hmove=2pt*3-11.5pt] \\
+2A\supersub[vsep={3pt,6pt-2bp}]{examsuper}{sub}
+\end{demohigh}
   \keyval{cmd}{format cmds}
-  The format commands of superscript or subscript. The last command can take a parameter, which accepts superscript or subscript. Represents the format of superscript and subscript in the superscript and subscript commands.
+  The format commands of superscripts or subscripts. The last command can take a parameter, which accepts superscript or subscript. Represents the format \option{spbcmd} of superscript and subscript in super-subscript command.
   \keyval{cmd+}{format cmds}
   Add code to the previous option \option{cmd}.
   \keyval{height}{fixed length}
@@ -163,22 +165,22 @@ The options common to \meta{kv list} of the three commands are as follows. They 
   \keyval{style}{style name}
   Use the \meta{style name} defined by the \cs{defspbstyle} command to make it work global or local.
   \keychoice{mode}{text,math,\fbox{match}}
-  The mode of superscript or subscript output can be \code{text} or \code{math} mode. The \code{match} option automatically matches output modes according to the current mode.
+  The mode of superscripts or subscripts output can be \code{text} or \code{math} mode. The \code{match} option automatically matches output modes according to the current mode.
   \keychoice{thiswd}{auto,\fbox{keep}}
   Sets how the length of the this marker is handled after this command is used. If it is \code{keep}, the width of the previous marker remains the same. If it is \code{auto}, if the next token is a marker command and the upper or lower position is the \textcolor{red}{opposite} of the this command, the width of the this marker is maintained, otherwise the width automatically returns to \textcolor{red}{zero}.
-  \begin{example}
-  \spbset{sbhmove=-\llastwd,sbthiswd=auto,sbcmd=\color{red}}
-  1A\super{bcd}\sub[thiswd=keep]{e}Some texts\sub{e} \\
-  3A\super{bcd}\sub{e}Some texts\sub{e} \\
-  3A\sub{bcd}[thiswd=keep]\sub{e}Some texts\sub{e} \\
-  4A\sub{bcd}\sub{e}Some texts\sub{e}
-  \end{example}
+\begin{demohigh}
+\spbset{sbhmove=-\llastwd,sbthiswd=auto,sbcmd=\color{red}}
+1A\super{bcd}\sub[thiswd=keep]{e}Some texts\sub{e} \\
+3A\super{bcd}\sub{e}Some texts\sub{e} \\
+3A\sub{bcd}[thiswd=keep]\sub{e}Some texts\sub{e} \\
+4A\sub{bcd}\sub{e}Some texts\sub{e}
+\end{demohigh}
   \keyval{regex}{regular expression}
-  After using the superscript or subscript command, this option is used to determine whether the \textcolor{red}{following} tokens match the \meta{regular expression}. If it does \textcolor{red}{not}, the width of the this marker returns to zero.
-  \begin{example}[code-only]
-  \newcommand{\mysp}[2][]{\super[regex=\c{mysb},#1]{#2}}
-  \newcommand{\mysb}[2][]{\sub[regex=\c{mysp},#1]{#2}}
-  \end{example}
+  After using a superscript or subscript command, this option is used to determine whether the \textcolor{red}{following} tokens match the \meta{regular expression}. If it does \textcolor{red}{not}, the width of the this marker returns to zero.
+\begin{codehigh}
+\newcommand{\mysp}[2][]{\super[regex=\c{mysb},#1]{#2}}
+\newcommand{\mysb}[2][]{\sub[regex=\c{mysp},#1]{#2}}
+\end{codehigh}
 \end{options}
 
 \section{Global control interface}
@@ -253,39 +255,39 @@ The following list of keys control the format of superscripts \emph{and} subscri
 
 \section{Examples of use}
 Here is a list of the three commands, please pay attention to the usage of optional parameter. Note when the horizontal move is negative, the starting point is at the right end of the mark.
-\begin{example}
-  \defspbstyle{fancy}{cmd=\color{purple}}
-  \spbset{spbcmd={\spbifmath{\mathtt}{\ttfamily},\color{blue}}}
-  1A\super[vmove=0.2ex,hmove=0.2em,cmd=\textcolor{red}]{exam}B \\
-  2$A\sub[style=fancy,cmd+=\mathsf,mode=math]{exam}B$ \\
-  3A\supersub[vsep=0.6ex,halign=c]{examsuper}{sub}B \\
-  4A\super{c}[vmove=5pt,hmove=-5.5pt]B\sub[vmove=5pt,hmove=-5pt]{d}AB \\
-  5A\super{c\super{d}}B
-\end{example}
+\begin{demohigh}
+\defspbstyle{fancy}{cmd=\color{purple}}
+\spbset{spbcmd={\spbifmath{\mathtt}{\ttfamily},\color{blue}}}
+1A\super[vmove=0.2ex,hmove=0.2em,cmd=\textcolor{red}]{exam}B \\
+2$A\sub[style=fancy,cmd+=\mathsf,mode=math]{exam}B$ \\
+3A\supersub[vsep=0.6ex,halign=c]{examsuper}{sub}B \\
+4A\super{c}[vmove=5pt,hmove=-5.5pt]B\sub[vmove=5pt,hmove=-5pt]{d}AB \\
+5A\super{c\super{d}}B
+\end{demohigh}
 
 \subsection{siunitx}
 It can also be used with the \pkg*{siunitx} package to output superscripts and subscripts in the unit:
-\begin{example}
-  \spbset{spcmd=\spbifmath{}{\color{purple}}}
-  \sisetup{text-superscript-command=\super}
-  1-\qty[mode=text]{10}{A^2} \\
-  2-\unit[mode=math]{kg.m/s\super[vmove=-1pt]{2}} \\
-  3-\qty[mode=text]{30}{A\supersub[hmove=1pt,cmd=\color{blue}]{b}{c}} \\
-  4-\spbset{sbhmove=2pt}\unit[mode=text]{A\sub{b}}
-\end{example}
+\begin{demohigh}
+\spbset{spcmd=\spbifmath{}{\color{purple}}}
+\sisetup{text-superscript-command=\super}
+1-\qty[mode=text]{10}{A^2} \\
+2-\unit[mode=math]{kg.m/s\super[vmove=-1pt]{2}} \\
+3-\qty[mode=text]{30}{A\supersub[hmove=1pt,cmd=\color{blue}]{b}{c}} \\
+4-\spbset{sbhmove=2pt}\unit[mode=text]{A\sub{b}}
+\end{demohigh}
 
 \subsection{realscripts}
 If the OpenType text font you are using does not have optical sizes, the superscripts and subscripts may not appear correctly. Loading the \pkg*{realscripts} package before the \pkg*{spbmark} package fixes this behavior.
-\begin{example}[code-only]
-  \usepackage{realscripts,spbmark}
-\end{example}
+\begin{codehigh}
+\usepackage{realscripts,spbmark}
+\end{codehigh}
 
 \subsection{altsubsup}
 The \pkg*{altsubsup} package allows to write alternate superscripts and subscripts in math mode with \code{\^{}}\oarg{mark} and \code{\_{}}\oarg{mark} dimensions. When the package is loaded using the \code{spbmark} option, the superscripts and subscripts mechanism of \pkg*{spbmark} is used, you can use \cs{defspbstyle} to define its superscripts style \code{altsup} and subscripts style \code{altsub}.
-\begin{example}
-  \defspbstyle{altsup}{sphmove=-\llastwd,spthiswd=auto,spvmove=1pt}
-  $A_[bcd]^[e]B$
-\end{example}
+\begin{demohigh}
+\defspbstyle{altsup}{sphmove=-\llastwd,spthiswd=auto,spvmove=1pt}
+$A_[bcd]^[e]B$
+\end{demohigh}
 
 \subsection{footnote}
 \pkg*{spbmark} also patches the footer markers for standard document class and \cls*{KOMA-Script}. You can format the footer markers by redefining the \cs{fnmarkfont} command. Note that extra horizontal move does not work with footnote markers.
