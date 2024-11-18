@@ -8,8 +8,8 @@
 \setcnltx
   {
     package           = spbmark,
-    version           = v1.46q,
-    date              = 2024/10/22,
+    version           = v1.46t,
+    date              = 2024/10/31,
     authors           = Qu Yi,
     title             = \spbmark{} package,
     info              = Customize superscripts and subscripts,
@@ -171,7 +171,7 @@ The options common to \meta{kv list} of the three commands are as follows. They 
 \begin{demohigh}
 \spbset{sbhmove=-\llastwd,sbthiswd=auto,sbcmd=\color{red}}
 1A\super{bcd}\sub[thiswd=keep]{e}Some texts\sub{e} \\
-3A\super{bcd}\sub{e}Some texts\sub{e} \\
+2A\super{bcd}\sub{e}Some texts\sub{e} \\
 3A\sub{bcd}[thiswd=keep]\sub{e}Some texts\sub{e} \\
 4A\sub{bcd}\sub{e}Some texts\sub{e}
 \end{demohigh}
@@ -253,6 +253,32 @@ The following list of keys control the format of superscripts \emph{and} subscri
   The alignment of superscripts and subscripts, which contains \code{l}, \code{c}, and \code{r} parameter respectively for left, center, and right alignment.
 \end{options}
 
+\section{Marker hooks}
+\begin{commands}\setlength{\itemsep}{0pt}
+  \command{AddToHookWithArguments}[\Marg{spb/super/before}\oarg{label}\marg{code}]\nonl
+  \command{AddToHookWithArguments}[\Marg{spb/super/after}\oarg{label}\marg{code}]\nonl
+  \command{AddToHookWithArguments}[\Marg{spb/sub/before}\oarg{label}\marg{code}]\nonl
+  \command{AddToHookWithArguments}[\Marg{spb/sub/after}\oarg{label}\marg{code}]\newtag{New\\v1.46r}%
+  \pkg*{spbmark} provides hooks to markers of \cs{super} and \cs{sub} with arguments in front and back positions, this feature requires support in the \hologo{LaTeX} kernel after \textbf{2023/06/01}. Argument \code{\#1} in the \meta{code} represents \code{super} or \code{sub}, and argument \code{\#2} represents the marker content itself.
+\begin{demohigh}
+\AddToHookWithArguments{spb/super/before}{\spbifmath{(#1-#2)}{[#1-#2]}}
+$\super{a}$\super{b}
+\RemoveFromHook{spb/super/before}
+\end{demohigh}
+\end{commands}
+\begin{commands}\setlength{\itemsep}{0pt}
+  \command{AddToHookWithArguments}[\Marg{spb/super*/before}\oarg{label}\marg{code}]\nonl
+  \command{AddToHookWithArguments}[\Marg{spb/super*/after}\oarg{label}\marg{code}]\nonl
+  \command{AddToHookWithArguments}[\Marg{spb/sub*/before}\oarg{label}\marg{code}]\nonl
+  \command{AddToHookWithArguments}[\Marg{spb/sub*/after}\oarg{label}\marg{code}]
+  Hook name with an asterisk indicates that this is the hook for the marker in the \cs{supersub} command.
+\end{commands}
+\begin{commands}\setlength{\itemsep}{0pt}
+  \command{AddToHookWithArguments}[\Marg{cmd+/super/after}\oarg{label}\marg{code}]\nonl
+  \command{AddToHookWithArguments}[\Marg{cmd+/sub/after}\oarg{label}\marg{code}]
+  The above hooks are located in the marker horizontal boxes, and these two hooks are located at the end of the group outside of the \cs{super} and \cs{sub} commands. Due to the addition of the peek command at the end of marker commands, using such as \code{cmd/super/after} hook directly would result in a peek error.
+\end{commands}
+
 \section{Examples of use}
 Here is a list of the three commands, please pay attention to the usage of optional parameter. Note when the horizontal move is negative, the starting point is at the right end of the mark.
 \begin{demohigh}
@@ -316,6 +342,7 @@ At present, the vertical and horizontal move are effective for the unit commands
   \begin{version}[v = 1.46k,date = 2024/06/21]
   \item Add options \option{spcore} and \option{sbcore}: Set kernel commands for superscripts and subscripts of text and math modes.
   \end{version}
+  \shortversion{v = 1.46r,date = 2024/10/29,changes = Give hooks to markers with parameters at the front and back positions.}
 \end{changelog}
 \nocite{*}
 

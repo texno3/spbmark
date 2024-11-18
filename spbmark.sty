@@ -9,7 +9,7 @@
 %   https://creativecommons.org/licenses/by/4.0/legalcode
 \NeedsTeXFormat{LaTeX2e}[2018/12/31]
 \RequirePackage{xparse}
-\ProvidesExplPackage{spbmark}{2024/10/22}{1.46q}
+\ProvidesExplPackage{spbmark}{2024/10/31}{1.46t}
   {Customize superscripts and subscripts}
 
 \cs_generate_variant:Nn \box_set_ht:Nn { cv }
@@ -233,7 +233,7 @@
 \cs_generate_variant:Nn \spb_box_super_move_up_ii:n { V }
 \cs_generate_variant:Nn \spb_box_sub_move_down_ii:n { V }
 \providecommand{\hbox_overlap_center:n}[1]
-  { \hbox_to_zero:n { \hss #1\hss } }
+  {\hbox_to_zero:n { \hss #1\hss }}
 \cs_new:Npn \spb_hbox_overlap_vmove_ii:n #1
   {
     \use:c { hbox_overlap_#1:n }
@@ -333,40 +333,68 @@
 \tl_set:Nn \maxwd { \dim_max:VV \superwd \subwd }
 \tl_set:Nn \l__spb_box_super_wd_i_tl { \box_wd:N \g__super_i_inner_box }
 \tl_set:Nn \l__spb_box_sub_wd_i_tl { \box_wd:N \g__sub_i_inner_box }
-\cs_new:Npn \spb_math_print_store_i:nn #1#2
+\providecommand{\NewHookWithArguments}[2]{}
+\providecommand{\UseHookWithArguments}[4]{}
+\NewHookWithArguments{spb/super/before}{2}
+\NewHookWithArguments{spb/super/after}{2}
+\NewHookWithArguments{spb/sub/before}{2}
+\NewHookWithArguments{spb/sub/after}{2}
+\NewHookWithArguments{spb/super*/before}{2}
+\NewHookWithArguments{spb/super*/after}{2}
+\NewHookWithArguments{spb/sub*/before}{2}
+\NewHookWithArguments{spb/sub*/after}{2}
+\NewHookWithArguments{cmd+/super/after}{2}
+\NewHookWithArguments{cmd+/sub/after}{2}
+\cs_new:Npn \spb_math_print_store_i:nnnn #1#2#3#4
   {
     \hbox_gset:cn { g__#1_i_inner_box }
       {
-        \ensuremath
-          {
-            \use:c { spb@math@#1@core }
-              { \tl_use:c { l__spb_#1_cmd_i_tl }{#2} }
+        #3{
+            \UseHookWithArguments{spb/#1/before}{2}{#1}{#2}
+            \use:c {#4} { \tl_use:c { l__spb_#1_cmd_i_tl }{#2} }
+            \UseHookWithArguments{spb/#1/after}{2}{#1}{#2}
           }
       }
     \dim_gset:Nv \rlastwd { l__spb_box_#1_wd_i_tl }
   }
+\cs_new:Npn \spb_math_print_store_i:nn #1#2
+  {
+    \spb_math_print_store_i:nnnn
+      {#1} {#2} { \ensuremath } { spb@math@#1@core }
+  }
 \cs_new:Npn \spb_text_print_store_i:nn #1#2
   {
-    \hbox_gset:cn { g__#1_i_inner_box }
+    \spb_math_print_store_i:nnnn
+      {#1} {#2} { \use:n } { spb@text#1script@core }
+  }
+\cs_new:Npn \spb_math_print_store_ii:nnnnn #1#2#3#4#5
+  {
+    \hbox_gset:Nn \g__super_ii_box
       {
-        \use:c { spb@text#1script@core }
-          { \tl_use:c { l__spb_#1_cmd_i_tl }{#2} }
+        #3{
+            \UseHookWithArguments{spb/super*/before}{2}{super}{#1}
+            #4{\l__spb_super_cmd_ii_tl{#1}}
+            \UseHookWithArguments{spb/super*/after}{2}{super}{#1}
+          }
       }
-    \dim_gset:Nv \rlastwd { l__spb_box_#1_wd_i_tl }
+    \hbox_gset:Nn \g__sub_ii_box
+      {
+        #3{
+            \UseHookWithArguments{spb/sub*/before}{2}{sub}{#2}
+            #5{\l__spb_sub_cmd_ii_tl{#2}}
+            \UseHookWithArguments{spb/sub*/after}{2}{sub}{#2}
+          }
+      }
   }
 \cs_new:Npn \spb_math_print_store_ii:nn #1#2
   {
-    \hbox_gset:Nn \g__super_ii_box
-      { \ensuremath{\spb@math@super@core{\l__spb_super_cmd_ii_tl{#1}}} }
-    \hbox_gset:Nn \g__sub_ii_box
-      { \ensuremath{\spb@math@sub@core{\l__spb_sub_cmd_ii_tl{#2}}} }
+    \spb_math_print_store_ii:nnnnn {#1} {#2}
+      { \ensuremath } { \spb@math@super@core } { \spb@math@sub@core }
   }
 \cs_new:Npn \spb_text_print_store_ii:nn #1#2
   {
-    \hbox_gset:Nn \g__super_ii_box
-      { \spb@textsuperscript@core{\l__spb_super_cmd_ii_tl{#1}} }
-    \hbox_gset:Nn \g__sub_ii_box
-      { \spb@textsubscript@core{\l__spb_sub_cmd_ii_tl{#2}} }
+    \spb_math_print_store_ii:nnnnn {#1} {#2}
+      { \use:n } { \spb@textsuperscript@core } { \spb@textsubscript@core }
   }
 \cs_set_eq:NN \spbifmath \use_ii:nn
 \cs_new:Npn \spb@ifmathtrue { \cs_set_eq:NN \spbifmath \use_i:nn }
@@ -470,6 +498,7 @@
         \exp_last_unbraced:Nx
         \group_end:
           {
+            \UseHookWithArguments{cmd+/#1/after}{2}{#1}{##4}
             \exp_args:Nv \str_if_eq:nnT
               { l__spb_#1_thiswd_mode_tl } { auto }
               { \spb_clear_thiswd:n {#1} }
