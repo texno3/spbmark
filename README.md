@@ -1,5 +1,5 @@
 # The `spbmark` package
-Customize superscripts and subscripts (v1.46t)
+Customize superscripts and subscripts (v1.46w)
 
 ## Abstract
 `spbmark` provides three commands `\super`, `\sub` and `\supersub` to improve the layout of superscripts and subscripts which can be adjusted the relative position and format, and can be used in text and math mode.

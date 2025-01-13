@@ -9,7 +9,7 @@
 %   https://creativecommons.org/licenses/by/4.0/legalcode
 \NeedsTeXFormat{LaTeX2e}[2018/12/31]
 \RequirePackage{xparse}
-\ProvidesExplPackage{spbmark}{2024/10/31}{1.46t}
+\ProvidesExplPackage{spbmark}{2024/12/08}{1.46w}
   {Customize superscripts and subscripts}
 
 \cs_generate_variant:Nn \box_set_ht:Nn { cv }
@@ -136,14 +136,19 @@
   }
 
 \tl_new:N \g__spb_mark_case_init_tl
+\bool_new:N \l__spb_mark_at_local_bool
 \cs_new_protected:Npn \spb_local_case_init:nnn #1#2#3
   {
-    \str_case:Vn \g__spb_mark_case_init_tl
+    \bool_if:NTF \l__spb_mark_at_local_bool
       {
-        { super } {#1}
-        { sub } {#2}
-        { supersub } {#3}
+        \str_case:Vn \g__spb_mark_case_init_tl
+          {
+            { super } {#1}
+            { sub } {#2}
+            { supersub } {#3}
+          }
       }
+      { #1#2#3 }
   }
 \NewDocumentCommand{\spb@both@vsep@assign}
   {>{\SplitArgument{1}{,}}m}
@@ -222,7 +227,7 @@
   { \box_move_up:nn {#1} { \box_use:N \g__super_ii_box } }
 \cs_new:Npn \spb_box_sub_move_down_ii:n #1
   { \box_move_down:nn {#1} { \box_use:N \g__sub_ii_box } }
-\cs_new:Npn \spb_box_vmove_i:nn #1
+\cs_new:Npn \spb_inner_box_vmove_i:nn #1
   {
     \str_case:nn {#1}
       {
@@ -347,7 +352,9 @@
 \NewHookWithArguments{cmd+/sub/after}{2}
 \cs_new:Npn \spb_math_print_store_i:nnnn #1#2#3#4
   {
-    \hbox_gset:cn { g__#1_i_inner_box }
+    \bool_if:NTF \l__spb_nobox_mark_bool
+      { \tl_gset:cn { g__#1_i_nobox_mark_tl } }
+      { \hbox_gset:cn { g__#1_i_inner_box } }
       {
         #3{
             \UseHookWithArguments{spb/#1/before}{2}{#1}{#2}
@@ -448,7 +455,8 @@
     spregex .tl_set:N   = \l__spb_super_regex_next_tl,
     spregex .initial:n  = \c{sub}|\c{textsubscript}|\c{sb}|\_,
     sbregex .tl_set:N   = \l__spb_sub_regex_next_tl,
-    sbregex .initial:n  = \c{super}|\c{textsuperscript}|\c{sp}|\^
+    sbregex .initial:n  = \c{super}|\c{textsuperscript}|\c{sp}|\^,
+    nobox .bool_set:N   = \l__spb_nobox_mark_bool
   }
 \cs_new:Npn \spb_clear_thiswd:n #1
   {
@@ -488,13 +496,18 @@
     \exp_args:Nc \NewDocumentCommand {#1}{sO{}O{}mO{}}
       {
         \group_begin:
+        \bool_set_true:N \l__spb_mark_at_local_bool
         \mode_leave_vertical:
         \tl_gset:Nn \g__spb_mark_case_init_tl {#1}
         \spb_set:n { ##2,##3,##5 }
         \spb_mode_switch:nnn {#1} {##4} { i }
-        \spb_content_hbox_set:nn {#1} {##1}
-        \spb_ht_dp_assign:nnnn {#1} {#1} { i } { _outer }
-        \box_use:c { g__#1_i_outer_box }
+        \bool_if:NTF \l__spb_nobox_mark_bool
+          { \tl_use:c { g__#1_i_nobox_mark_tl } }
+          {
+            \spb_mark_box_set:nn {#1} {##1}
+            \spb_ht_dp_assign:nnnn {#1} {#1} { i } { _outer }
+            \box_use:c { g__#1_i_outer_box }
+          }
         \exp_last_unbraced:Nx
         \group_end:
           {
@@ -505,7 +518,7 @@
           }
       }
   }
-\cs_new_protected:Npn \spb_content_hbox_set:nn #1#2
+\cs_new_protected:Npn \spb_mark_box_set:nn #1#2
   {
     \dim_gset:Nn \clastwd { (\llastwd + \rlastwd)/2 }
     \tl_set:Nn \abs@hmove@i { \dim_abs:v { l__spb_#1_hmove_tl } }
@@ -516,7 +529,7 @@
             \hbox_overlap_left:n
               {
                 \hbox_overlap_right:n
-                  { \spb_box_vmove_i:nn {#1} { \tl_use:c { l__spb_#1_vmove_tl } } }
+                  { \spb_inner_box_vmove_i:nn {#1} { \tl_use:c { l__spb_#1_vmove_tl } } }
                 \skip_horizontal:n { \abs@hmove@i }
               }
             \IfBooleanT{#2}
@@ -528,7 +541,7 @@
           {
             \hbox_to_wd:nn
               { \tl_use:c { l__spb_box_#1_wd_i_tl } + \tl_use:c { l__spb_#1_hmove_tl } }
-              { \hss\spb_box_vmove_i:nn {#1} { \tl_use:c { l__spb_#1_vmove_tl } } }
+              { \hss\spb_inner_box_vmove_i:nn {#1} { \tl_use:c { l__spb_#1_vmove_tl } } }
           }
       }
     \dim_gset:Nv \llastwd { l__spb_box_#1_wd_i_tl }
@@ -549,6 +562,7 @@
 \NewDocumentCommand{\supersub}{sO{}mmO{}}
   {
     \group_begin:
+    \bool_set_true:N \l__spb_mark_at_local_bool
     \mode_leave_vertical:
     \tl_gset:Nn \g__spb_mark_case_init_tl { supersub }
     \spb_set:n {#2,#5}

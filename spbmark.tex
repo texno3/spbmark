@@ -4,12 +4,11 @@
 \usepackage{siunitx,hologo,changelog,enumitem,codehigh}
 \usepackage[spbmark]{altsubsup}
 \usepackage[margin = 1in,marginparwidth = 0.6in,footskip = 0.5in]{geometry}
-\usepackage[noto]{newtxmath}
 \setcnltx
   {
     package           = spbmark,
-    version           = v1.46t,
-    date              = 2024/10/31,
+    version           = v1.46w,
+    date              = 2024/12/08,
     authors           = Qu Yi,
     title             = \spbmark{} package,
     info              = Customize superscripts and subscripts,
@@ -20,6 +19,7 @@
         \pkg*{spbmark} provides three commands \cs{super}, \cs{sub} and \cs{supersub} to improve the layout of superscripts and subscripts which can be adjusted the relative position and format, and can be used in text and math mode.
       },
     color-scheme      = blue,
+    module-sep        = \,$\Rightarrow$\,,
     title-format      = \LARGE
   }
 \makeatletter
@@ -37,6 +37,16 @@
 \newsplitarg{\splitoarg}{[}{]}
 \newsplitarg{\splitmarg}{\{}{\}}
 \newsplitarg{\splitdarg}{(}{)}
+\newcommand{\hface}{$\symbol{"263A}$}
+\newcommand{\sface}{$\symbol{"263B}$}
+\NewDocumentCommand{\dtag}{sO{\hface}}
+  {
+    \begingroup
+    \reversemarginpar
+    \marginnote{\hfill\llap{#2}}
+    \endgroup
+    \IfBooleanF{#1}{\cnltx@checkdefault{\hfill\newline}}
+  }
 \newnote{\newtag}[1]{\textcolor{red}{#1}}
 \renewcommand{\emph}[1]{\textcolor{red}{#1}}
 \renewcommand{\cnltx@write@lastname}{}
@@ -87,7 +97,7 @@ The following macro package options will redefine the script commands of the \La
 
 \section{User commands}
 \label{sec:user commands}
-There are currently three commands to print superscripts and subscripts. Their format can be set locally using the optional parameter of the command, or set globally using a key-value list, see Section \ref{sec:global control interface}.
+There are currently three commands to print superscripts and subscripts. Their format can be set locally using the optional parameter of the command, or set globally using a \meta{key-value list}, see Section \ref{sec:global control interface}.
 \begin{commands}
   \command{super}[\sarg\oarg{kv list}\marg{content}\oarg{kv list}]
   This is a superscript output command. The two \meta{kv list} are equivalent.
@@ -113,11 +123,11 @@ There are currently three commands to print superscripts and subscripts. Their f
   \command{supersub}[\sarg\oarg{kv list}\marg{super cont}\marg{sub cont}\oarg{kv list}]
   This is a command that outputs both superscript and subscript at the same time. You can also use the shorter command \cs{spb} instead of it. The two \meta{kv list} are equivalent.
   \command{superwd}
-  Save the width of the superscript in the previous super-subscript command.
+  Save the width of the superscript in the \cs{supersub} command.
   \command{subwd}
-  Save the width of the subscript in the previous super-subscript command.
+  Save the width of the subscript in the \cs{supersub} command.
   \command{maxwd}
-  Save the maximum width of superscript and subscript in the previous super-subscript command. That is, it is the larger of the \cs{superwd} and \cs{subwd} commands.
+  Save the maximum width of superscript and subscript in the \cs{supersub} command. That is, it is the larger of the \cs{superwd} and \cs{subwd} commands.
 
   If horizontally move is negative and its absolute value is \emph{less} than the maximum width of the marker, then the marker overlaps the subsequent text. To avoid this use the command with the \emph{asterisk} parameter or adjust the horizontal distance with the marker length commands.
 \begin{demohigh}
@@ -144,29 +154,29 @@ There are currently three commands to print superscripts and subscripts. Their f
 \end{demohigh}
 \end{commands}
 
-The options common to \meta{kv list} of the three commands are as follows. They can also be used in \meta {key-value list} of the \cs{spbset} command. In this situation, in addition to \option{style} and \option{mode}, they will be set according to the type of the previous most recent command.
+The options common to \meta{kv list} of the three commands are as follows. These options can also be used in \meta {key-value list} of the \cs{spbset} command to represent the simultaneous setting of three commands. The symbol \hface{} before options indicates that they are invalid for the \cs{supersub} command.
 \begin{options}
+  \keyval{style}{style name}
+  Use the \meta{style name} defined by the \cs{defspbstyle} command to make it work global or local.
+  \keychoice{mode}{text,math,\fbox{match}}
+  The mode of superscripts or subscripts output can be \code{text} or \code{math} mode. The \code{match} option automatically matches output modes according to the current mode.
   \keyval{vmove}{fixed length}\Default{0pt}
-  Vertical move of superscripts or subscripts. Represents the extra vertical distance \option{vsep} between superscript and subscript in super-subscript command. The vertical movement starts at the marker horizontal baseline position.
+  Vertical move of superscripts or subscripts. Represents the extra vertical distance \option{vsep} between superscript and subscript in the \cs{supersub} command. The vertical movement starts at the marker horizontal baseline position.
   \keyval{hmove}{fixed length}\Default{0pt}
-  Horizontal move of superscripts or subscripts. Represents the \emph{common} move of superscript and subscript in super-subscript command. The starting point for horizontal movement is to the left of the marker. Moved values can be expressed mathematically:
+  Horizontal move of superscripts or subscripts. Represents the \emph{common} move of superscript and subscript in the \cs{supersub} command. The starting point for horizontal movement is to the left of the marker. Moved values can be expressed mathematically:
 \begin{demohigh}
 1A\super{b}[vmove=0.4ex+4pt/2,hmove=2pt*3-11.5pt] \\
 2A\supersub[vsep={3pt,6pt-2bp}]{examsuper}{sub}
 \end{demohigh}
   \keyval{cmd}{format cmds}
-  The format commands of superscripts or subscripts. The last command can take a parameter, which accepts superscript or subscript. Represents the format \option{spbcmd} of superscript and subscript in super-subscript command.
+  The format commands of superscripts or subscripts. The last command can take a parameter, which accepts superscript or subscript. Represents the format option \option{spbcmd} of superscript and subscript in the \cs{supersub} command.
   \keyval{cmd+}{format cmds}
   Add code to the previous option \option{cmd}.
   \keyval{height}{fixed length}
   The height of the marker box above the baseline. It is recommended that the superscript adjusts the height and the subscript adjusts the depth.
   \keyval{depth}{fixed length}
   The depth of the marker box below the baseline.
-  \keyval{style}{style name}
-  Use the \meta{style name} defined by the \cs{defspbstyle} command to make it work global or local.
-  \keychoice{mode}{text,math,\fbox{match}}
-  The mode of superscripts or subscripts output can be \code{text} or \code{math} mode. The \code{match} option automatically matches output modes according to the current mode.
-  \keychoice{thiswd}{auto,\fbox{keep}}
+  \keychoice{thiswd}{auto,\fbox{keep}}\dtag
   Sets how the length of the this marker is handled after this command is used. If it is \code{keep}, the width of the previous marker remains the same. If it is \code{auto}, if the next token is a marker command and the upper or lower position is the \textcolor{red}{opposite} of the this command, the width of the this marker is maintained, otherwise the width automatically returns to \textcolor{red}{zero}.
 \begin{demohigh}
 \spbset{sbhmove=-\llastwd,sbthiswd=auto,sbcmd=\color{red}}
@@ -175,12 +185,18 @@ The options common to \meta{kv list} of the three commands are as follows. They 
 3A\sub{bcd}[thiswd=keep]\sub{e}Some texts\sub{e} \\
 4A\sub{bcd}\sub{e}Some texts\sub{e}
 \end{demohigh}
-  \keyval{regex}{regular expression}
+  \keyval{regex}{regular expression}\dtag
   After using a superscript or subscript command, this option is used to determine whether the \textcolor{red}{following} tokens match the \meta{regular expression}. If it does \textcolor{red}{not}, the width of the this marker returns to zero.
 \begin{codehigh}
 \newcommand{\mysp}[2][]{\super[regex=\c{mysb},#1]{#2}}
 \newcommand{\mysb}[2][]{\sub[regex=\c{mysp},#1]{#2}}
 \end{codehigh}
+  \keychoice{nobox}{true,\fbox{false}}\dtag\newtag{New\\v1.46v}%
+  Causes the superscripts or subscripts not to be saved in the box, in which case the offset-related options are invalid. For example, there is a difference in nesting superscripts in math mode.
+\begin{demohigh}
+1A$\super{c\super{d}}$B \\
+2A$\super{c\super[nobox]{d}}$B
+\end{demohigh}
 \end{options}
 
 \section{Global control interface}
@@ -287,8 +303,7 @@ Here is a list of the three commands, please pay attention to the usage of optio
 1A\super[vmove=0.2ex,hmove=0.2em,cmd=\textcolor{red}]{exam}B \\
 2$A\sub[style=fancy,cmd+=\mathsf,mode=math]{exam}B$ \\
 3A\supersub[vsep=0.6ex,halign=c]{examsuper}{sub}B \\
-4A\super{c}[vmove=5pt,hmove=-5.5pt]B\sub[vmove=5pt,hmove=-5pt]{d}AB \\
-5A\super{c\super{d}}B
+4A\super{c}[vmove=5pt,hmove=-5.5pt]B\sub[vmove=5pt,hmove=-5pt]{d}AB
 \end{demohigh}
 
 \subsection{siunitx}
