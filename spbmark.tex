@@ -7,8 +7,8 @@
 \setcnltx
   {
     package           = spbmark,
-    version           = v1.46w,
-    date              = 2024/12/08,
+    version           = v1.46x,
+    date              = 2025/02/08,
     authors           = Qu Yi,
     title             = \spbmark{} package,
     info              = Customize superscripts and subscripts,
@@ -325,7 +325,10 @@ If the OpenType text font you are using does not have optical sizes, the supersc
 
 \subsection{altsubsup}
 The \pkg*{altsubsup} package allows to write alternate superscripts and subscripts in math mode with \code{\^{}}\oarg{mark} and \code{\_{}}\oarg{mark} dimensions. When the package is loaded using the \code{spbmark} option, the superscripts and subscripts mechanism of \pkg*{spbmark} is used, you can use \cs{defspbstyle} to define its superscripts style \code{altsup} and subscripts style \code{altsub}.
+
+Note that the mechanism of \pkg*{altsubsup} package adds \cs{text} command to markers in math mode, which invalidates the \option{match} option. You can restore it by setting the format command to \cs{relax}.
 \begin{demohigh}
+\SetAltSubSupCommands{\relax}
 \defspbstyle{altsup}{sphmove=-\llastwd,spthiswd=auto,spvmove=1pt}
 $A_[bcd]^[e]B$
 \end{demohigh}
